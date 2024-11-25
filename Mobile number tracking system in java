@@ -1,0 +1,52 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
+
+public class MobileNumberLocationTracker {
+    
+    // Replace with your API key from Numverify or similar services
+    private static final String API_KEY = "your_api_key_here";
+    private static final String API_URL = "http://apilayer.net/api/validate";
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter mobile number with country code (e.g., +1234567890): ");
+            String phoneNumber = reader.readLine();
+
+            // Build the request URL
+            String requestUrl = API_URL + "?access_key=" + API_KEY + "&number=" + phoneNumber;
+
+            // Make the API request
+            HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
+            connection.setRequestMethod("GET");
+
+            // Read the response
+            BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder responseBuilder = new StringBuilder();
+            String line;
+            while ((line = responseReader.readLine()) != null) {
+                responseBuilder.append(line);
+            }
+            responseReader.close();
+
+            // Parse the JSON response
+            JSONObject responseJson = new JSONObject(responseBuilder.toString());
+
+            // Display location details
+            if (responseJson.getBoolean("valid")) {
+                System.out.println("Country: " + responseJson.getString("country_name"));
+                System.out.println("Location: " + responseJson.getString("location"));
+                System.out.println("Carrier: " + responseJson.getString("carrier"));
+                System.out.println("Line type: " + responseJson.getString("line_type"));
+            } else {
+                System.out.println("Invalid phone number.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
